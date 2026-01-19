@@ -1,98 +1,200 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RobotDreams NestJS Project
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Опис проєкту
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Серверний додаток на базі NestJS framework. Проєкт побудований з використанням модульної архітектури, що забезпечує масштабованість, легкість тестування та підтримки коду.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Архітектура проєкту
 
-## Project setup
+### Загальний огляд
 
-```bash
-$ npm install
+Проєкт базується на **модульній архітектурі NestJS**, яка є реалізацією патерну **Modular Monolith**. Цей підхід поєднує простоту моноліту з організаційними перевагами мікросервісів.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Application                        │
+├─────────────────────────────────────────────────────────┤
+│                       AppModule                         │
+│  ┌─────────────────┐  ┌─────────────────────────────┐   │
+│  │  ConfigModule   │  │        UsersModule          │   │
+│  │  (глобальний)   │  │  ┌──────────┐ ┌───────────┐ │   │
+│  │                 │  │  │Controller│ │  Service  │ │   │
+│  │  .local.env     │  │  └──────────┘ └───────────┘ │   │
+│  │  .dev.env       │  │                             │   │
+│  │  .prod.env      │  │                             │   │
+│  └─────────────────┘  └─────────────────────────────┘   │
+├─────────────────────────────────────────────────────────┤
+│                    NestJS Core                          │
+├─────────────────────────────────────────────────────────┤
+│                   Express / Node.js                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Compile and run the project
+### Структура проєкту
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+src/
+├── main.ts                 # Точка входу в додаток
+├── app.module.ts           # Кореневий модуль
+├── app.controller.ts       # Кореневий контролер
+├── app.service.ts          # Кореневий сервіс
+└── users/                  # Feature-модуль користувачів
+    ├── users.module.ts     # Модуль користувачів
+    ├── users.controller.ts # Контролер (HTTP endpoints)
+    └── users.service.ts    # Бізнес-логіка
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## Архітектурні рішення
 
-# e2e tests
-$ npm run test:e2e
+### 1. Модульна структура
 
-# test coverage
-$ npm run test:cov
+**Чому саме так:**
+
+- **Інкапсуляція** — кожен модуль містить власні контролери, сервіси та залежності
+- **Незалежність** — модулі можна розробляти, тестувати та деплоїти незалежно
+- **Масштабованість** — легко додавати нові feature-модулі без впливу на існуючі
+- **Перевикористання** — модулі можна експортувати та імпортувати в інші частини додатку
+
+```typescript
+// Приклад підключення модуля
+@Module({
+  imports: [ConfigModule, UsersModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
 ```
 
-## Deployment
+### 2. Шаруватість (Layered Architecture)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Кожен модуль дотримується трирівневої архітектури:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Шар.           | Відповідальність                               | Файл              |
+|----------------|------------------------------------------------|-------------------|
+| **Controller** | HTTP запити/відповіді, валідація вхідних даних | `*.controller.ts` |
+| **Service**    | Бізнес-логіка, обробка даних                   | `*.service.ts`    |
+| **Module**     | Конфігурація залежностей, DI контейнер         | `*.module.ts`     |
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+**Чому саме так:**
+
+- **Separation of Concerns** — чіткий розподіл відповідальності
+- **Тестованість** — легко мокати залежності на кожному рівні
+- **Підтримуваність** — зміни в одному шарі не впливають на інші
+
+### 3. Dependency Injection (DI)
+
+NestJS використовує вбудований IoC-контейнер для управління залежностями:
+
+```typescript
+@Controller('users')
+export class UsersController {
+  // Сервіс інжектується автоматично
+  constructor(private readonly usersService: UsersService) {}
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Чому саме так:**
 
-## Resources
+- **Loose Coupling** — класи не створюють залежності самостійно
+- **Тестованість** — легко підміняти реальні сервіси на моки
+- **Гнучкість** — можна змінювати реалізації без зміни споживачів
 
-Check out a few resources that may come in handy when working with NestJS:
+### 4. Конфігурація середовища
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Проєкт підтримує три середовища з окремими конфігураціями:
 
-## Support
+| Середовище  | Файл         | Порт | Команда               |
+|-------------|--------------|------|-----------------------|
+| Local       | `.local.env` | 5000 | `npm run start:local` |
+| Development | `.dev.env`   | 3000 | `npm run start:dev`   |
+| Production  | `.prod.env`  | 2026 | `npm run start:prod`  |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Чому саме так:**
 
-## Stay in touch
+- **Безпека** — конфігурації не потрапляють в git (`.gitignore`)
+- **Гнучкість** — різні налаштування для різних середовищ
+- **12-Factor App** — дотримання принципу "Store config in environment"
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```typescript
+// Динамічне завантаження конфігурації
+ConfigModule.forRoot({
+  envFilePath: `.${process.env.NODE_ENV}.env`,
+})
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Потік даних
+
+```
+HTTP Request
+     │
+     ▼
+┌─────────────┐
+│  Controller │ ← Приймає запит, валідує дані
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Service   │ ← Виконує бізнес-логіку
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│  Repository │ ← Робота з БД (буде додано)
+└──────┬──────┘
+       │
+       ▼
+HTTP Response
+```
+
+---
+
+## Запуск проєкту
+
+### Встановлення залежностей
+
+```bash
+npm install
+```
+
+### Створення env файлів
+
+```bash
+# .local.env
+PORT=5000
+
+# .dev.env
+PORT=3000
+
+# .prod.env
+PORT=2026
+```
+
+### Запуск
+
+```bash
+# Локальне середовище (з hot-reload)
+npm run start:local
+
+# Development середовище (з hot-reload)
+npm run start:dev
+
+# Production
+npm run build
+npm run start:prod
+```
+
+---
+
+## Технології
+
+- **Runtime:** Node.js
+- **Framework:** NestJS 11
+- **Language:** TypeScript 5
+- **Configuration:** @nestjs/config
+- **Package Manager:** npm
