@@ -55,14 +55,18 @@
 
 ```
 src/
-├── main.ts                 # Точка входу в додаток
+├── main.ts                 # Точка входу, глобальний ValidationPipe
 ├── app.module.ts           # Кореневий модуль
 ├── app.controller.ts       # Кореневий контролер
 ├── app.service.ts          # Кореневий сервіс
 └── users/                  # Feature-модуль користувачів
     ├── users.module.ts     # Модуль користувачів
     ├── users.controller.ts # Контролер (HTTP endpoints)
-    └── users.service.ts    # Бізнес-логіка
+    ├── users.service.ts    # Бізнес-логіка
+    ├── dto/                # Data Transfer Objects
+    │   └── create-user.dto.ts
+    └── interfaces/         # TypeScript інтерфейси
+        └── user.interface.ts
 ```
 
 ---
@@ -173,6 +177,65 @@ HTTP Response
 
 ---
 
+## API Endpoints
+
+### Users
+
+| Метод | Endpoint | Опис |
+|-------|----------|------|
+| POST | `/users` | Створити користувача |
+| GET | `/users` | Отримати всіх користувачів |
+| GET | `/users/:id` | Отримати користувача за ID |
+
+### Приклади запитів
+
+```bash
+# Створити користувача
+curl -X POST http://localhost:5000/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"john@example.com"}'
+
+# Отримати всіх користувачів
+curl http://localhost:5000/users
+
+# Отримати користувача за ID
+curl http://localhost:5000/users/1
+```
+
+---
+
+## Валідація
+
+Проєкт використовує `class-validator` для валідації вхідних даних.
+
+### ValidationPipe (глобальний)
+
+```typescript
+app.useGlobalPipes(new ValidationPipe({
+  whitelist: true,           // Видаляє невідомі поля
+  forbidNonWhitelisted: true, // Помилка при невідомих полях
+  transform: true,           // Автоматична трансформація типів
+}));
+```
+
+### CreateUserDto
+
+```typescript
+export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+```
+
+При невалідних даних повертається HTTP 400 з детальним описом помилок.
+
+---
+
 ## Запуск проєкту
 
 ### Встановлення залежностей
@@ -216,4 +279,5 @@ npm run start:prod
 - **Framework:** NestJS 11
 - **Language:** TypeScript 5
 - **Configuration:** @nestjs/config
+- **Validation:** class-validator, class-transformer
 - **Package Manager:** npm
