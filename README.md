@@ -2,26 +2,9 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-
 ## Опис проєкту
 
-Серверний додаток на базі NestJS framework. Проєкт побудований з використанням модульної архітектури, що забезпечує масштабованість, легкість тестування та підтримки коду.
+E-commerce бекенд на базі NestJS framework з PostgreSQL. Проєкт побудований з використанням модульної архітектури, що забезпечує масштабованість, легкість тестування та підтримки коду.
 
 ---
 
@@ -29,150 +12,119 @@
 
 ### Загальний огляд
 
-Проєкт базується на **модульній архітектурі NestJS**, яка є реалізацією патерну **Modular Monolith**. Цей підхід поєднує простоту моноліту з організаційними перевагами мікросервісів.
+Проєкт базується на **модульній архітектурі NestJS** (Modular Monolith) з трирівневою структурою: Controller → Service → Repository (TypeORM).
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      Application                        │
-├─────────────────────────────────────────────────────────┤
-│                       AppModule                         │
-│  ┌─────────────────┐  ┌─────────────────────────────┐   │
-│  │  ConfigModule   │  │        UsersModule          │   │
-│  │  (глобальний)   │  │  ┌──────────┐ ┌───────────┐ │   │
-│  │                 │  │  │Controller│ │  Service  │ │   │
-│  │  .local.env     │  │  └──────────┘ └───────────┘ │   │
-│  │  .dev.env       │  │                             │   │
-│  │  .prod.env      │  │                             │   │
-│  └─────────────────┘  └─────────────────────────────┘   │
-├─────────────────────────────────────────────────────────┤
-│                    NestJS Core                          │
-├─────────────────────────────────────────────────────────┤
-│                   Express / Node.js                     │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                          AppModule                               │
+│  ┌──────────────┐  ┌────────────┐  ┌─────────────┐  ┌────────┐  │
+│  │ ConfigModule │  │UsersModule │  │ProductsModule│  │Orders  │  │
+│  │              │  │            │  │              │  │Module  │  │
+│  │ .local.env   │  │ Controller │  │ Controller   │  │Control.│  │
+│  │ .dev.env     │  │ Service    │  │ Service      │  │Service │  │
+│  │ .prod.env    │  │ Entity     │  │ Entity       │  │Entities│  │
+│  └──────────────┘  └────────────┘  └─────────────┘  └────────┘  │
+├──────────────────────────────────────────────────────────────────┤
+│                    TypeORM + PostgreSQL                           │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Структура проєкту
 
 ```
 src/
-├── main.ts                 # Точка входу, глобальний ValidationPipe
-├── app.module.ts           # Кореневий модуль
-├── app.controller.ts       # Кореневий контролер
-├── app.service.ts          # Кореневий сервіс
-└── users/                  # Feature-модуль користувачів
-    ├── users.module.ts     # Модуль користувачів
-    ├── users.controller.ts # Контролер (HTTP endpoints)
-    ├── users.service.ts    # Бізнес-логіка
-    ├── dto/                # Data Transfer Objects
-    │   └── create-user.dto.ts
-    └── interfaces/         # TypeScript інтерфейси
-        └── user.interface.ts
+├── main.ts                          # Точка входу, глобальний ValidationPipe
+├── app.module.ts                    # Кореневий модуль (TypeORM, Config)
+├── app.controller.ts                # Кореневий контролер
+├── app.service.ts                   # Кореневий сервіс
+├── users/                           # Модуль користувачів
+│   ├── entities/user.entity.ts      # User entity
+│   ├── dto/create-user.dto.ts       # DTO валідація
+│   ├── users.module.ts
+│   ├── users.controller.ts
+│   └── users.service.ts
+├── products/                        # Модуль продуктів
+│   ├── entities/product.entity.ts   # Product entity (@VersionColumn)
+│   ├── dto/create-product.dto.ts
+│   ├── products.module.ts
+│   ├── products.controller.ts
+│   └── products.service.ts
+├── orders/                          # Модуль замовлень
+│   ├── entities/
+│   │   ├── order.entity.ts          # Order entity (idempotencyKey UNIQUE)
+│   │   └── order-item.entity.ts     # OrderItem entity
+│   ├── dto/
+│   │   ├── create-order.dto.ts
+│   │   └── create-order-item.dto.ts
+│   ├── enums/order-status.enum.ts
+│   ├── orders.module.ts
+│   ├── orders.controller.ts
+│   └── orders.service.ts            # Транзакційна логіка
+└── migrations/                      # TypeORM міграції
+    ├── *-InitialSchema.ts
+    └── *-SeedData.ts
+```
+
+### Entity Relationships
+
+```
+User 1 ──── * Order 1 ──── * OrderItem * ──── 1 Product
 ```
 
 ---
 
-## Архітектурні рішення
+## Запуск проєкту
 
-### 1. Модульна структура
+### 1. Встановлення залежностей
 
-**Чому саме так:**
-
-- **Інкапсуляція** — кожен модуль містить власні контролери, сервіси та залежності
-- **Незалежність** — модулі можна розробляти, тестувати та деплоїти незалежно
-- **Масштабованість** — легко додавати нові feature-модулі без впливу на існуючі
-- **Перевикористання** — модулі можна експортувати та імпортувати в інші частини додатку
-
-```typescript
-// Приклад підключення модуля
-@Module({
-  imports: [ConfigModule, UsersModule],
-  controllers: [AppController],
-  providers: [AppService],
-})
-export class AppModule {}
+```bash
+npm install
 ```
 
-### 2. Шаруватість (Layered Architecture)
+### 2. PostgreSQL
 
-Кожен модуль дотримується трирівневої архітектури:
-
-| Шар.           | Відповідальність                               | Файл              |
-|----------------|------------------------------------------------|-------------------|
-| **Controller** | HTTP запити/відповіді, валідація вхідних даних | `*.controller.ts` |
-| **Service**    | Бізнес-логіка, обробка даних                   | `*.service.ts`    |
-| **Module**     | Конфігурація залежностей, DI контейнер         | `*.module.ts`     |
-
-**Чому саме так:**
-
-- **Separation of Concerns** — чіткий розподіл відповідальності
-- **Тестованість** — легко мокати залежності на кожному рівні
-- **Підтримуваність** — зміни в одному шарі не впливають на інші
-
-### 3. Dependency Injection (DI)
-
-NestJS використовує вбудований IoC-контейнер для управління залежностями:
-
-```typescript
-@Controller('users')
-export class UsersController {
-  // Сервіс інжектується автоматично
-  constructor(private readonly usersService: UsersService) {}
-}
+**Через Docker:**
+```bash
+docker compose up -d
 ```
 
-**Чому саме так:**
-
-- **Loose Coupling** — класи не створюють залежності самостійно
-- **Тестованість** — легко підміняти реальні сервіси на моки
-- **Гнучкість** — можна змінювати реалізації без зміни споживачів
-
-### 4. Конфігурація середовища
-
-Проєкт підтримує три середовища з окремими конфігураціями:
-
-| Середовище  | Файл         | Порт | Команда               |
-|-------------|--------------|------|-----------------------|
-| Local       | `.local.env` | 5000 | `npm run start:local` |
-| Development | `.dev.env`   | 3000 | `npm run start:dev`   |
-| Production  | `.prod.env`  | 2026 | `npm run start:prod`  |
-
-**Чому саме так:**
-
-- **Безпека** — конфігурації не потрапляють в git (`.gitignore`)
-- **Гнучкість** — різні налаштування для різних середовищ
-- **12-Factor App** — дотримання принципу "Store config in environment"
-
-```typescript
-// Динамічне завантаження конфігурації
-ConfigModule.forRoot({
-  envFilePath: `.${process.env.NODE_ENV}.env`,
-})
+**Або локальний PostgreSQL:**
+Створити базу `robotdreams`:
+```bash
+psql -U postgres -c "CREATE DATABASE robotdreams;"
 ```
 
----
+### 3. Конфігурація
 
-## Потік даних
+Створіть файли середовища (вже є в `.gitignore`):
 
+```bash
+# .local.env
+PORT = 5000
+DB_HOST = localhost
+DB_PORT = 5432
+DB_USERNAME = postgres
+DB_PASSWORD = postgres
+DB_NAME = robotdreams
 ```
-HTTP Request
-     │
-     ▼
-┌─────────────┐
-│  Controller │ ← Приймає запит, валідує дані
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Service   │ ← Виконує бізнес-логіку
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Repository │ ← Робота з БД (буде додано)
-└──────┬──────┘
-       │
-       ▼
-HTTP Response
+
+### 4. Міграції
+
+```bash
+npm run migration:run
+```
+
+### 5. Запуск
+
+```bash
+# Локальне середовище (hot-reload)
+npm run start:local
+
+# Development
+npm run start:dev
+
+# Production
+npm run build && npm run start:prod
 ```
 
 ---
@@ -181,94 +133,77 @@ HTTP Response
 
 ### Users
 
-| Метод | Endpoint | Опис |
-|-------|----------|------|
-| POST | `/users` | Створити користувача |
-| GET | `/users` | Отримати всіх користувачів |
-| GET | `/users/:id` | Отримати користувача за ID |
+| Метод | Endpoint | Опис | Status |
+|-------|----------|------|--------|
+| POST | `/users` | Створити користувача | 201, 400 |
+| GET | `/users` | Отримати всіх | 200 |
+| GET | `/users/:id` | Отримати за ID | 200, 404 |
+
+### Products
+
+| Метод | Endpoint | Опис | Status |
+|-------|----------|------|--------|
+| POST | `/products` | Створити продукт | 201, 400 |
+| GET | `/products` | Отримати всі | 200 |
+| GET | `/products/:id` | Отримати за ID | 200, 404 |
+
+### Orders (транзакційне створення)
+
+| Метод | Endpoint | Опис | Status |
+|-------|----------|------|--------|
+| POST | `/orders` | Створити замовлення (ідемпотентно) | 201, 200, 400, 404, 409 |
+| GET | `/orders` | Список замовлень (з фільтрами) | 200 |
+| GET | `/orders/:id` | Отримати замовлення з items | 200, 404 |
+
+**Query параметри для `GET /orders`:**
+- `status` — PENDING, CONFIRMED, CANCELLED
+- `startDate` — ISO дата (від)
+- `endDate` — ISO дата (до)
 
 ### Приклади запитів
 
 ```bash
-# Створити користувача
-curl -X POST http://localhost:5000/users \
+# Створити замовлення (ідемпотентно)
+curl -X POST http://localhost:5000/orders \
   -H "Content-Type: application/json" \
-  -d '{"name":"John","email":"john@example.com"}'
+  -d '{
+    "userId": 1,
+    "idempotencyKey": "unique-key-123",
+    "items": [
+      { "productId": 1, "quantity": 2 },
+      { "productId": 2, "quantity": 1 }
+    ]
+  }'
 
-# Отримати всіх користувачів
-curl http://localhost:5000/users
+# Повторний запит з тим же ключем → 200 OK (той самий order)
+curl -X POST http://localhost:5000/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 1,
+    "idempotencyKey": "unique-key-123",
+    "items": [
+      { "productId": 1, "quantity": 2 },
+      { "productId": 2, "quantity": 1 }
+    ]
+  }'
 
-# Отримати користувача за ID
-curl http://localhost:5000/users/1
+# Отримати замовлення з фільтрами
+curl "http://localhost:5000/orders?status=PENDING&startDate=2026-01-01&endDate=2026-12-31"
 ```
 
 ---
 
-## Валідація
-
-Проєкт використовує `class-validator` для валідації вхідних даних.
-
-### ValidationPipe (глобальний)
-
-```typescript
-app.useGlobalPipes(new ValidationPipe({
-  whitelist: true,           // Видаляє невідомі поля
-  forbidNonWhitelisted: true, // Помилка при невідомих полях
-  transform: true,           // Автоматична трансформація типів
-}));
-```
-
-### CreateUserDto
-
-```typescript
-export class CreateUserDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-}
-```
-
-При невалідних даних повертається HTTP 400 з детальним описом помилок.
-
----
-
-## Запуск проєкту
-
-### Встановлення залежностей
+## Міграції
 
 ```bash
-npm install
-```
+# Згенерувати міграцію з entity changes
+npm run migration:generate -- src/migrations/MigrationName
 
-### Створення env файлів
+# Запустити міграції
+npm run migration:run
 
-```bash
-# .local.env
-PORT=5000
-
-# .dev.env
-PORT=3000
-
-# .prod.env
-PORT=2026
-```
-
-### Запуск
-
-```bash
-# Локальне середовище (з hot-reload)
-npm run start:local
-
-# Development середовище (з hot-reload)
-npm run start:dev
-
-# Production
-npm run build
-npm run start:prod
+# Відкотити останню міграцію
+npm run migration:revert
 ```
 
 ---
@@ -278,6 +213,9 @@ npm run start:prod
 - **Runtime:** Node.js
 - **Framework:** NestJS 11
 - **Language:** TypeScript 5
+- **Database:** PostgreSQL 16
+- **ORM:** TypeORM 0.3
 - **Configuration:** @nestjs/config
 - **Validation:** class-validator, class-transformer
+- **Container:** Docker Compose
 - **Package Manager:** npm
